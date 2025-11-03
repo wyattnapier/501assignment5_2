@@ -4,6 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,11 +39,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.example.assign5_2.ui.theme.Assign5_2Theme
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,28 +69,41 @@ val screens = listOf(
     Screen.Calendar
 )
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen() {
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
-        NavHost(
+        AnimatedNavHost(
             navController = navController,
             startDestination = Screen.Notes.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             // use screen-specific view models
-            composable(Screen.Notes.route) {
+            composable(
+                Screen.Notes.route,
+                enterTransition = {
+                    fadeIn()
+                },
+                exitTransition = { fadeOut() }
+            ) {
                 val viewModel: NotesViewModel = viewModel()
                 NotesScreen(viewModel)
             }
-            composable(Screen.Tasks.route) {
+            composable(
+                Screen.Tasks.route,
+                enterTransition = {
+                    fadeIn()
+                },
+                exitTransition = { fadeOut() }
+            ) {
                 val viewModel: TasksViewModel = viewModel()
                 TasksScreen(viewModel)
             }
-            composable(Screen.Calendar.route) {
+            composable(Screen.Calendar.route, enterTransition = {fadeIn()}, exitTransition = {fadeOut()}) {
                 GenericScreen(screenName = Screen.Calendar.title)
             }
         }
