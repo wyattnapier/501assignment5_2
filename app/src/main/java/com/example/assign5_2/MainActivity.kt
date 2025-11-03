@@ -6,24 +6,32 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -69,11 +77,14 @@ fun MainScreen() {
             startDestination = Screen.Notes.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            // use screen-specific view models
             composable(Screen.Notes.route) {
-                GenericScreen(screenName = Screen.Notes.title)
+                val viewModel: NotesViewModel = viewModel()
+                NotesScreen(viewModel)
             }
             composable(Screen.Tasks.route) {
-                GenericScreen(screenName = Screen.Tasks.title)
+                val viewModel: TasksViewModel = viewModel()
+                TasksScreen(viewModel)
             }
             composable(Screen.Calendar.route) {
                 GenericScreen(screenName = Screen.Calendar.title)
@@ -113,6 +124,56 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
+
+@Composable
+fun NotesScreen(viewModel: NotesViewModel) {
+    Column(Modifier.padding(16.dp)) {
+        Text("Notes", style = MaterialTheme.typography.titleLarge)
+
+        TextField(
+            value = viewModel.currentInput,
+            onValueChange = { viewModel.currentInput = it },
+            label = { Text("New note") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Button(
+            onClick = { viewModel.addNote() },
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Add")
+        }
+
+        LazyColumn {
+            items(viewModel.notes.size) { index ->
+                val note = viewModel.notes[index]
+                Text("• ${note.text}", Modifier.padding(vertical = 4.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun TasksScreen(viewModel: TasksViewModel) {
+    Column(Modifier.padding(16.dp)) {
+        Text("Tasks", style = MaterialTheme.typography.titleLarge)
+        LazyColumn {
+            items(viewModel.tasks.size) { index ->
+                val task = viewModel.tasks[index]
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = task.isDone,
+                        onCheckedChange = { viewModel.toggleTask(task.id) }
+                    )
+                    Text(task.label)
+                }
+            }
+        }
+    }
+}
 @Composable
 fun GenericScreen(screenName: String, modifier: Modifier = Modifier) {
     Column(
@@ -121,21 +182,5 @@ fun GenericScreen(screenName: String, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = screenName, style = MaterialTheme.typography.headlineMedium)
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Assign5_2Theme {
-        Greeting("Android")
     }
 }
